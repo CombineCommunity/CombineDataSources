@@ -1,11 +1,3 @@
-# CombineDataSources
-
-<p>
-<a href="https://github.com/apple/swift-package-manager" target="_blank"><img src="https://img.shields.io/badge/Swift%20Package%20Manager-compatible-brightgreen.svg" alt="CombineDataSources supports Swift Package Manager (SPM)"></a> 
-<img src="https://img.shields.io/badge/platforms-iOS%2013.0-333333.svg" />
-</p>
-
-
 ![Combine Data Sources](https://github.com/combineopensource/CombineDataSources/raw/master/Assets/combine-data-sources.png)
 
 **CombineDataSources** provides custom Combine subscribers that act as table and collection view controllers and bind a stream of element collections to table or collection sections with cells.  
