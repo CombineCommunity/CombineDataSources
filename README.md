@@ -1,6 +1,6 @@
 # CombineDataSources
 
-<p align="center">
+<p>
 <a href="https://github.com/apple/swift-package-manager" target="_blank"><img src="https://img.shields.io/badge/Swift%20Package%20Manager-compatible-brightgreen.svg" alt="CombineDataSources supports Swift Package Manager (SPM)"></a> 
 <img src="https://img.shields.io/badge/platforms-iOS%2013.0-333333.svg" />
 </p>
@@ -55,3 +55,21 @@ data
   .receive(subscriber: tableView.sectionsSubscriber(controller))
 ```
 
+## Installation
+
+### Swift Package Manager
+
+Add the following dependency to your **Package.swift** file:
+
+```swift
+.package(url: "https://github.com/combineopensource/CombineDataSources, from: "0.2")
+```
+## License
+
+CombineOpenSource is available under the MIT license. See the LICENSE file for more info.
+
+## Credits
+
+Created by Marin Todorov for [CombineOpenSource](https://github.com/combineopensource).
+
+Inspired by [RxDataSources](https://github.com/RxSwiftCommunity/RxDataSources) and [RxRealmDataSources](https://github.com/RxSwiftCommunity/RxRealmDataSources).
