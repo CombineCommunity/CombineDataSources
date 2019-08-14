@@ -54,6 +54,10 @@ public class TableViewItemsController<CollectionType>: NSObject, UITableViewData
     self.cellFactory = cellFactory
   }
   
+  deinit {
+    print("Controller is released")
+  }
+  
   // MARK: - Update collection
   private let fromRow = {(section: Int) in return {(row: Int) in return IndexPath(row: row, section: section)}}
   
