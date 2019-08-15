@@ -6,7 +6,7 @@
 
 ### Table of Contents
 
-1. [Usage](#usage)
+1. [**Usage**](#usage)
 
 1.1 [Bind a plain list of elements](https://github.com/combineopensource/CombineDataSources#bind-a-plain-list-of-elements)
 
@@ -16,13 +16,13 @@
 
 1.3 [Subscribing a completing publisher](#subscribing-a-completing-publisher)
 
-2. [Installation](#installation)
+2. [**Installation**](#installation)
 
 2.1 [Swift Package Manager](#swift-package-manager)
 
-3. [License](#license)
+3. [**License**](#license)
 
-4. [Credits](#credits)
+4. [**Credits**](#credits)
 
 ---
 
