@@ -4,6 +4,23 @@
 
 **Note**: The package is currently work in progress.
 
+### Table of Contents
+
+1. [Usage](#usage)
+1.1 [Bind a plain list of elements](https://github.com/combineopensource/CombineDataSources#bind-a-plain-list-of-elements)
+1.2 [Bind a list of Section models](#bind-a-list-of-section-models)
+1.2 [Customize the table controller](#customize-the-table-controller)
+1.3 [Subscribing a completing publisher](#subscribing-a-completing-publisher)
+
+2. [Installation](#installation)
+2.1 [Swift Package Manager](#swift-package-manager)
+
+3. [License](#license)
+
+4. [Credits](#credits)
+
+---
+
 ## Usage
 
 The repo contains a demo app in the *Example* sub-folder that demonstrates visually different ways to use CombineDataSources.
@@ -47,8 +64,26 @@ controller.animated = false
 // More custom controller configuration ...
 
 data
-  .receive(subscriber: tableView.sectionsSubscriber(controller))
+  .subscribe(subscriber: tableView.sectionsSubscriber(controller))
 ```
+
+#### Subscribing a completing publisher
+
+Sometimes you'll bind a publisher to your table or collection view and it will complete at a point. When you use `subscribe(_)` the completion event will release the CombineDataSource subscriber as well and that will likely render the table/collection empty.
+
+In such case you can use the custom operator included in **CombineDataSources** `subscribe(retaining:)` that will give you an `AnyCancellable` to retain the subscriber, like so:
+
+```swift
+var subscriptions = [AnyCancellable]()
+...
+Just([Person(name: "test"])
+  .subscribe(retaining: tableView.rowsSubscriber(cellIdentifier: "Cell", cellType: UITableViewCell.self, cellConfig: { (cell, ip, person) in
+    cell.textLabel!.text = person.name
+  }))
+  .store(in: &subscriptions)
+```
+
+This will keep the subscriber and the data source alive until you cancel the subscription manually or it is released from memory.
 
 ## Installation
 

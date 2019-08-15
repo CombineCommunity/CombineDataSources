@@ -1,9 +1,6 @@
 //
-//  ViewController.swift
-//  Example
-//
-//  Created by Marin Todorov on 8/9/19.
-//  Copyright © 2019 Underplot ltd. All rights reserved.
+//  For credits and licence check the LICENSE file included in this package.
+//  (c) CombineOpenSource, Created by Marin Todorov.
 //
 
 import UIKit
@@ -61,14 +58,14 @@ class ViewController: UIViewController {
       // A plain list with a single section -> Publisher<[Person], Never>
       data
         .map { $0[0] }
-        .receive(subscriber: tableView.rowsSubscriber(cellIdentifier: "Cell", cellType: PersonCell.self, cellConfig: { cell, indexPath, model in
+        .subscribe(tableView.rowsSubscriber(cellIdentifier: "Cell", cellType: PersonCell.self, cellConfig: { cell, indexPath, model in
           cell.nameLabel.text = "\(indexPath.section+1).\(indexPath.row+1) \(model.name)"
         }))
       
     case .multiple:
       // Table with sections -> Publisher<[[Person]], Never>
       data
-        .receive(subscriber: tableView.sectionsSubscriber(cellIdentifier: "Cell", cellType: PersonCell.self, cellConfig: { cell, indexPath, model in
+        .subscribe(tableView.sectionsSubscriber(cellIdentifier: "Cell", cellType: PersonCell.self, cellConfig: { cell, indexPath, model in
           cell.nameLabel.text = "\(indexPath.section+1).\(indexPath.row+1) \(model.name)"
         }))
 
@@ -80,7 +77,7 @@ class ViewController: UIViewController {
             return Section(header: "Header", items: persons, footer: "Footer")
           }
         }
-        .receive(subscriber: tableView.sectionsSubscriber(cellIdentifier: "Cell", cellType: PersonCell.self, cellConfig: { cell, indexPath, model in
+        .subscribe(tableView.sectionsSubscriber(cellIdentifier: "Cell", cellType: PersonCell.self, cellConfig: { cell, indexPath, model in
           cell.nameLabel.text = "\(indexPath.section+1).\(indexPath.row+1) \(model.name)"
         }))
       
@@ -92,7 +89,7 @@ class ViewController: UIViewController {
       controller.animated = false
       
       data
-        .receive(subscriber: tableView.sectionsSubscriber(controller))
+        .subscribe(tableView.sectionsSubscriber(controller))
     }
 
     reload()

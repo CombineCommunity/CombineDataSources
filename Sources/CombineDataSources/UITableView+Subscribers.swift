@@ -1,8 +1,6 @@
 //
-//  File.swift
-//  
-//
-//  Created by Marin Todorov on 8/13/19.
+//  For credits and licence check the LICENSE file included in this package.
+//  (c) CombineOpenSource, Created by Marin Todorov.
 //
 
 import UIKit

@@ -1,9 +1,6 @@
 //
-//  AppDelegate.swift
-//  Example
-//
-//  Created by Marin Todorov on 8/9/19.
-//  Copyright © 2019 Underplot ltd. All rights reserved.
+//  For credits and licence check the LICENSE file included in this package.
+//  (c) CombineOpenSource, Created by Marin Todorov.
 //
 
 import UIKit
