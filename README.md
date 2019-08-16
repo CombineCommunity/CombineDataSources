@@ -2,7 +2,7 @@
 
 **CombineDataSources** provides custom Combine subscribers that act as table and collection view controllers and bind a stream of element collections to table or collection sections with cells.  
 
-**Note**: The package is currently work in progress.
+⚠️⚠️⚠️ **Note**: The package is currently work in progress.
 
 ### Table of Contents
 
