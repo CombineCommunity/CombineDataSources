@@ -43,6 +43,18 @@ data
 
 ![Plain list updates with CombineDataSources](https://github.com/combineopensource/CombineDataSources/raw/master/Assets/plain-list.gif)
 
+Respectively for a collection view:
+
+```swift
+data
+  .subscribe(collectionView.itemsSubscriber(cellIdentifier: "Cell", cellType: PersonCollectionCell.self, cellConfig: { cell, indexPath, model in
+    cell.nameLabel.text = model.name
+    cell.imageURL = URL(string: "https://api.adorable.io/avatars/100/\(model.name)")!
+  }))
+```
+
+![Plain list updates for a collection view](https://github.com/combineopensource/CombineDataSources/raw/master/Assets/plain-collection.gif)
+
 #### Bind a list of Section models
 
 ```swift

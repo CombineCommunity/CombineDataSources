@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9C326989230B2DDE00E93F9C /* CollectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C326988230B2DDE00E93F9C /* CollectionViewController.swift */; };
 		9C371EE7230356CE00617B57 /* MenuTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C371EE6230356CE00617B57 /* MenuTableViewController.swift */; };
 		9CA4B70D23048B470041CBA4 /* GitHubSearchViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CA4B70C23048B470041CBA4 /* GitHubSearchViewController.swift */; };
 		9CB630CA22FD510000368A0D /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CB630C922FD510000368A0D /* AppDelegate.swift */; };
@@ -19,6 +20,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		9C326988230B2DDE00E93F9C /* CollectionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionViewController.swift; sourceTree = "<group>"; };
 		9C371EE6230356CE00617B57 /* MenuTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuTableViewController.swift; sourceTree = "<group>"; };
 		9CA4B70C23048B470041CBA4 /* GitHubSearchViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubSearchViewController.swift; sourceTree = "<group>"; };
 		9CB630C622FD510000368A0D /* Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Example.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -69,6 +71,7 @@
 				9CB630CB22FD510000368A0D /* SceneDelegate.swift */,
 				9C371EE6230356CE00617B57 /* MenuTableViewController.swift */,
 				9CB630CD22FD510000368A0D /* ViewController.swift */,
+				9C326988230B2DDE00E93F9C /* CollectionViewController.swift */,
 				9CA4B70C23048B470041CBA4 /* GitHubSearchViewController.swift */,
 				9CB630CF22FD510000368A0D /* Main.storyboard */,
 				9CB630D222FD510100368A0D /* Assets.xcassets */,
@@ -160,6 +163,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9C326989230B2DDE00E93F9C /* CollectionViewController.swift in Sources */,
 				9C371EE7230356CE00617B57 /* MenuTableViewController.swift in Sources */,
 				9CB630CE22FD510000368A0D /* ViewController.swift in Sources */,
 				9CA4B70D23048B470041CBA4 /* GitHubSearchViewController.swift in Sources */,
