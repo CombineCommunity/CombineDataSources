@@ -36,7 +36,7 @@ The repo contains a demo app in the *Example* sub-folder that demonstrates visua
 var data = PassthroughSubject<[Person], Never>()
 
 data
-  .receive(subscriber: tableView.rowsSubscriber(cellIdentifier: "Cell", cellType: PersonCell.self, cellConfig: { cell, indexPath, model in
+  .subscribe(subscriber: tableView.rowsSubscriber(cellIdentifier: "Cell", cellType: PersonCell.self, cellConfig: { cell, indexPath, model in
     cell.nameLabel.text = model.name
   }))
 ```
@@ -49,7 +49,7 @@ data
 var data = PassthroughSubject<[Section<Person>], Never>()
 
 data
-  .receive(subscriber: tableView.sectionsSubscriber(cellIdentifier: "Cell", cellType: PersonCell.self, cellConfig: { cell, indexPath, model in
+  .subscribe(subscriber: tableView.sectionsSubscriber(cellIdentifier: "Cell", cellType: PersonCell.self, cellConfig: { cell, indexPath, model in
     cell.nameLabel.text = model.name
   }))
 ```
