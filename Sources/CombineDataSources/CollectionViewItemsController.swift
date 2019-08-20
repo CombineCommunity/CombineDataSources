@@ -11,10 +11,10 @@ import Combine
 public class CollectionViewItemsController<CollectionType>: NSObject, UICollectionViewDataSource
   where CollectionType: RandomAccessCollection,
   CollectionType.Index == Int,
-  CollectionType.Element: Equatable,
+  CollectionType.Element: Hashable,
   CollectionType.Element: RandomAccessCollection,
   CollectionType.Element.Index == Int,
-  CollectionType.Element.Element: Equatable {
+  CollectionType.Element.Element: Hashable {
   
   public typealias Element = CollectionType.Element.Element
   public typealias CellFactory<Element: Equatable> = (CollectionViewItemsController<CollectionType>, UICollectionView, IndexPath, Element) -> UICollectionViewCell
@@ -63,33 +63,17 @@ public class CollectionViewItemsController<CollectionType>: NSObject, UICollecti
     // Commit the changes to the collection view sections
     collectionView.performBatchUpdates({[unowned self] in
       for sectionIndex in 0..<items.count {
+        let rowAtIndex = self.fromRow(sectionIndex)
         let changes = delta(newList: items[sectionIndex], oldList: collection[sectionIndex])
-        collectionView.deleteItems(at: changes.removals.map(self.fromRow(sectionIndex)))
-        collectionView.insertItems(at: changes.insertions.map(self.fromRow(sectionIndex)))
+        
+        collectionView.deleteItems(at: changes.removals.map(rowAtIndex))
+        collectionView.insertItems(at: changes.insertions.map(rowAtIndex))
+        for move in changes.moves {
+          collectionView.moveItem(at: rowAtIndex(move.0), to: rowAtIndex(move.1))
+        }
       }
       collection = items
     }, completion: nil)
-  }
-  
-  private func delta<T>(newList: T, oldList: T) -> (insertions: [Int], removals: [Int])
-    where T: RandomAccessCollection, T.Element: Equatable {
-      
-      let changes = newList.difference(from: oldList)
-      
-      let insertIndexes = changes.compactMap { change -> Int? in
-        guard case CollectionDifference<T.Element>.Change.insert(let offset, _, _) = change else {
-          return nil
-        }
-        return offset
-      }
-      let deleteIndexes = changes.compactMap { change -> Int? in
-        guard case CollectionDifference<T.Element>.Change.remove(let offset, _, _) = change else {
-          return nil
-        }
-        return offset
-      }
-      
-      return (insertions: insertIndexes, removals: deleteIndexes)
   }
   
   // MARK: - UITableViewDataSource protocol

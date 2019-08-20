@@ -11,10 +11,10 @@ import Combine
 public class TableViewItemsController<CollectionType>: NSObject, UITableViewDataSource
   where CollectionType: RandomAccessCollection,
   CollectionType.Index == Int,
-  CollectionType.Element: Equatable,
+  CollectionType.Element: Hashable,
   CollectionType.Element: RandomAccessCollection,
   CollectionType.Element.Index == Int,
-  CollectionType.Element.Element: Equatable {
+  CollectionType.Element.Element: Hashable {
   
   public typealias Element = CollectionType.Element.Element
   public typealias CellFactory<Element: Equatable> = (TableViewItemsController<CollectionType>, UITableView, IndexPath, Element) -> UITableViewCell
@@ -70,33 +70,16 @@ public class TableViewItemsController<CollectionType>: NSObject, UITableViewData
     // Commit the changes to the table view sections
     tableView.beginUpdates()
     for sectionIndex in 0..<items.count {
+      let rowAtIndex = fromRow(sectionIndex)
       let changes = delta(newList: items[sectionIndex], oldList: collection[sectionIndex])
-      tableView.deleteRows(at: changes.removals.map(fromRow(sectionIndex)), with: rowAnimations.delete)
-      tableView.insertRows(at: changes.insertions.map(fromRow(sectionIndex)), with: rowAnimations.insert)
+      tableView.deleteRows(at: changes.removals.map(rowAtIndex), with: rowAnimations.delete)
+      tableView.insertRows(at: changes.insertions.map(rowAtIndex), with: rowAnimations.insert)
+      for move in changes.moves {
+        tableView.moveRow(at: rowAtIndex(move.0), to: rowAtIndex(move.1))
+      }
     }
     collection = items
     tableView.endUpdates()
-  }
-  
-  private func delta<T>(newList: T, oldList: T) -> (insertions: [Int], removals: [Int])
-    where T: RandomAccessCollection, T.Element: Equatable {
-      
-      let changes = newList.difference(from: oldList)
-      
-      let insertIndexes = changes.compactMap { change -> Int? in
-        guard case CollectionDifference<T.Element>.Change.insert(let offset, _, _) = change else {
-          return nil
-        }
-        return offset
-      }
-      let deleteIndexes = changes.compactMap { change -> Int? in
-        guard case CollectionDifference<T.Element>.Change.remove(let offset, _, _) = change else {
-          return nil
-        }
-        return offset
-      }
-      
-      return (insertions: insertIndexes, removals: deleteIndexes)
   }
   
   // MARK: - UITableViewDataSource protocol
@@ -131,4 +114,30 @@ public class TableViewItemsController<CollectionType>: NSObject, UITableViewData
   override public func forwardingTarget(for aSelector: Selector!) -> Any? {
     return dataSource
   }
+}
+
+internal func delta<T>(newList: T, oldList: T) -> (insertions: [Int], removals: [Int], moves: [(Int, Int)])
+  where T: RandomAccessCollection, T.Element: Hashable {
+    
+    let changes = newList.difference(from: oldList).inferringMoves()
+    
+    var insertions = [Int]()
+    var removals = [Int]()
+    var moves = [(Int, Int)]()
+    
+    for change in changes {
+      switch change {
+      case .insert(offset: let index, element: _, associatedWith: let associatedIndex):
+        if let fromIndex = associatedIndex {
+          moves.append((fromIndex, index))
+        } else {
+          insertions.append(index)
+        }
+      case .remove(offset: let index, element: _, associatedWith: let associatedIndex):
+        if associatedIndex == nil {
+          removals.append(index)
+        }
+      }
+    }
+    return (insertions: insertions, removals: removals, moves: moves)
 }

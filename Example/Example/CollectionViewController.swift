@@ -36,7 +36,7 @@ class CollectionViewController: UIViewController {
     [Person(name: "Jim"), Person(name: "Jane")],
   ]
   let second = [
-    [Person(name: "Pete")],
+    [Person(name: "Pete"), Person(name: "Vicki")],
     [Person(name: "Jim")],
   ]
   

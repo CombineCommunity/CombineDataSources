@@ -7,7 +7,7 @@ import UIKit
 import Combine
 import CombineDataSources
 
-struct Repo: Codable, Equatable {
+struct Repo: Codable, Hashable {
   let name: String
   let description: String?
 }

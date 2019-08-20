@@ -13,7 +13,7 @@ public protocol SectionProtocol {
   var items: [Element] { get }
 }
 
-public struct Section<Element: Equatable>: SectionProtocol, Identifiable {
+public struct Section<Element: Hashable>: SectionProtocol, Identifiable {
   public init(header: String? = nil, items: [Element], footer: String? = nil, id: String? = nil) {
     self.id = id ?? header ?? UUID().uuidString
     self.header = header
@@ -31,6 +31,12 @@ public struct Section<Element: Equatable>: SectionProtocol, Identifiable {
 extension Section: Equatable {
   public static func == (lhs: Section<Element>, rhs: Section<Element>) -> Bool {
     return lhs.id == rhs.id
+  }
+}
+
+extension Section: Hashable {
+  public func hash(into hasher: inout Hasher) {
+    hasher.combine(id)
   }
 }
 

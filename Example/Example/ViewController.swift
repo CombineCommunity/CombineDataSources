@@ -7,7 +7,7 @@ import UIKit
 import Combine
 import CombineDataSources
 
-struct Person: Equatable {
+struct Person: Hashable {
   let name: String
 }
 
@@ -28,10 +28,10 @@ class ViewController: UIViewController {
   // Test data set to use
   let first = [
     [Person(name: "Julia"), Person(name: "Vicki"), Person(name: "Pete")],
-    [Person(name: "Jim"), Person(name: "Jane")],
+    [Person(name: "Jane"), Person(name: "Jim")],
   ]
   let second = [
-    [Person(name: "Vicki")],
+    [Person(name: "Pete"), Person(name: "Vicki")],
     [Person(name: "Jim")],
   ]
   
