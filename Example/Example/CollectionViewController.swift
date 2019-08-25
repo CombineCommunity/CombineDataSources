@@ -25,6 +25,10 @@ class PersonCollectionCell: UICollectionViewCell {
 }
 
 class CollectionViewController: UIViewController {
+  enum Demo: Int, RawRepresentable {
+    case plain, multiple, sections, noAnimations
+  }
+
   @IBOutlet var collectionView: UICollectionView!
   
   // The kind of demo to show

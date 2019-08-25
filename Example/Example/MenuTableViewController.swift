@@ -8,7 +8,9 @@ import UIKit
 class MenuTableViewController: UITableViewController {
   override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
     let rowIndex = (sender as! UITableViewCell).tag
-    (segue.destination as? ViewController)?.demo = Demo(rawValue: rowIndex)!
-    (segue.destination as? CollectionViewController)?.demo = Demo(rawValue: rowIndex)!
+    
+    (segue.destination as? ViewController)?.demo = ViewController.Demo(rawValue: rowIndex)!
+    (segue.destination as? CollectionViewController)?.demo = CollectionViewController.Demo(rawValue: rowIndex)!
+    (segue.destination as? BatchesViewController)?.demo = BatchesViewController.Demo(rawValue: rowIndex)!
   }
 }

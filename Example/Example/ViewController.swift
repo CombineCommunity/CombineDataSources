@@ -15,11 +15,11 @@ class PersonCell: UITableViewCell {
   @IBOutlet var nameLabel: UILabel!
 }
 
-enum Demo: Int, RawRepresentable {
-  case plain, multiple, sections, noAnimations
-}
-
 class ViewController: UIViewController {
+  enum Demo: Int, RawRepresentable {
+    case plain, multiple, sections, noAnimations
+  }
+
   @IBOutlet var tableView: UITableView!
   
   // The kind of demo to show

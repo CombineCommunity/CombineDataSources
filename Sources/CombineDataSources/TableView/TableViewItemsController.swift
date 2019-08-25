@@ -60,6 +60,18 @@ public class TableViewItemsController<CollectionType>: NSObject, UITableViewData
   private let fromRow = {(section: Int) in return {(row: Int) in return IndexPath(row: row, section: section)}}
   
   func updateCollection(_ items: CollectionType) {
+    // Initial collection
+    if collection == nil, animated {
+      tableView.beginUpdates()
+      tableView.insertSections(IndexSet(integersIn: 0..<items.count), with: rowAnimations.insert)
+      for sectionIndex in 0..<items.count {
+        let rowAtIndex = fromRow(sectionIndex)
+        tableView.insertRows(at: (0..<items[sectionIndex].count).map(rowAtIndex), with: rowAnimations.insert)
+      }
+      collection = items
+      tableView.endUpdates()
+    }
+    
     // If the changes are not animatable, reload the table
     guard animated, collection != nil, items.count == collection.count else {
       collection = items
