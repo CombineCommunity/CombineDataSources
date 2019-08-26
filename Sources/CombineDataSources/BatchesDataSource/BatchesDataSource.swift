@@ -57,6 +57,11 @@ public struct BatchesDataSource<Element> {
     case completed
   }
   
+  enum ResponseResult {
+    case result((token: Data?, result: BatchesDataSource<Element>.LoadResult))
+    case error(Error)
+  }
+  
   /// Initialiazes a list data source using a token to fetch batches of items.
   /// - Parameter items: initial list of items.
   /// - Parameter input: the input to control the data source.
@@ -65,50 +70,68 @@ public struct BatchesDataSource<Element> {
   ///   plus a token to use for the next batch. The token can be an alphanumerical id, a URL, or another type of token.
   /// - Todo: if `withLatestFrom` is introduced, use it instead of grabbing the latest value unsafely.
   public init(items: [Element] = [], input: BatchesInput, initialToken: Data?, loadItemsWithToken: @escaping (Data?) -> AnyPublisher<LoadResult, Error>) {
-    let items = CurrentValueSubject<[Element], Never>(items)
+    let itemsSubject = CurrentValueSubject<[Element], Never>(items)
     let token = CurrentValueSubject<Data?, Never>(initialToken)
 
     self.input = input
     let output = self.output
     
     let reload = input.reload
-      .map { initialToken }
+      .share()
 
+    reload
+      .map { _ in
+        return items
+      }
+      .subscribe(itemsSubject)
+      .store(in: &subscriptions)
+    
     let loadNext = input.loadNext
       .map { token.value }
     
-    let batchRequest = loadNext.merge(with: reload)
+    let batchRequest = loadNext.merge(with: reload.map { initialToken })
       .share()
       .prepend(initialToken)
-
+    
     let batchResponse = batchRequest
       .flatMap { token in
         return loadItemsWithToken(token)
-          .handleEvents(receiveOutput: { _ in
-            output.error = nil
-          },
-          receiveCompletion: { completion in
-            if case Subscribers.Completion.failure(let error) = completion {
-              output.error = error
-            } else {
-              output.error = nil
-            }
-          })
-          .catch { _ in
-            return Empty()
+          .map { result -> ResponseResult in
+            return .result((token: token, result: result))
           }
-          .map { (token: token, result: $0) }
+          .catch { error in
+            Just(ResponseResult.error(error))
+          }
       }
       .eraseToAnyPublisher()
       .share()
-
+    
+    batchResponse
+      .compactMap { result -> Error? in
+        switch result {
+        case .error(let error): return error
+        default: return nil
+        }
+      }
+    .assign(to: \Output.error, on: output)
+    .store(in: &subscriptions)
+    
     // Bind `Output.isLoading`
     Publishers.Merge(batchRequest.map { _ in true }, batchResponse.map { _ in false })
       .assign(to: \Output.isLoading, on: output)
       .store(in: &subscriptions)
 
+    let successResponse = batchResponse
+      .compactMap { result -> (token: Data?, result: BatchesDataSource<Element>.LoadResult)? in
+        switch result {
+        case .result(let result): return result
+        default: return nil
+        }
+      }
+      .share()
+    
     // Bind `Output.isCompleted`
-    batchResponse
+    successResponse
       .map { tuple -> Bool in
         switch tuple.result {
         case .completed: return true
@@ -118,7 +141,7 @@ public struct BatchesDataSource<Element> {
       .assign(to: \Output.isCompleted, on: output)
       .store(in: &subscriptions)
 
-    let result = batchResponse
+    let result = successResponse
       .compactMap { tuple -> (token: Data?, items: [Element], nextToken: Data?)? in
         switch tuple.result {
         case .completed: return nil
@@ -137,14 +160,14 @@ public struct BatchesDataSource<Element> {
     // Bind `items`
     result
       .map {
-        let currentItems = items.value
-        return $0.token == initialToken ? $0.items : currentItems + $0.items
+        let currentItems = itemsSubject.value
+        return currentItems + $0.items
       }
-      .subscribe(items)
+      .subscribe(itemsSubject)
       .store(in: &subscriptions)
 
     // Bind `Output.items`
-    items
+    itemsSubject
       .assign(to: \Output.items, on: output)
       .store(in: &subscriptions)
   }
@@ -156,22 +179,31 @@ public struct BatchesDataSource<Element> {
   /// - Parameter loadPage: a `(Int) -> (Publisher<LoadResult, Error>)` closure that fetches a batch of items.
   /// - Todo: if `withLatestFrom` is introduced, use it instead of grabbing the latest value unsafely.
   public init(items: [Element] = [], input: BatchesInput, initialPage: Int = 0, loadPage: @escaping (Int) -> AnyPublisher<LoadResult, Error>) {
-    let items = CurrentValueSubject<[Element], Never>(items)
+    let itemsSubject = CurrentValueSubject<[Element], Never>(items)
     let currentPage = CurrentValueSubject<Int, Never>(initialPage)
     
     self.input = input
     let output = self.output
     
     let reload = input.reload
-      .map { -1 }
+      .share()
+    
+    reload
+      .map { _ in
+        return items
+      }
+      .subscribe(itemsSubject)
+      .store(in: &subscriptions)
 
     let loadNext = input.loadNext
       .map { currentPage.value + 1 }
     
-    let pageRequest = loadNext.merge(with: reload)
+    let pageRequest = loadNext.merge(with: reload.map { -1 })
       .share()
       .prepend(1)
 
+    // TODO: Add the response error handling like for batches
+    
     // Bind `Output.isLoading = true`
     pageRequest
       .map { _ in true }
@@ -225,10 +257,10 @@ public struct BatchesDataSource<Element> {
         }
       }
       .map {
-        let currentItems = items.value
-        return $0.pageNumber == -1 ? $0.items : currentItems + $0.items
+        let currentItems = itemsSubject.value
+        return currentItems + $0.items
       }
-      .subscribe(items)
+      .subscribe(itemsSubject)
       .store(in: &subscriptions)
     
     // Bind `currentPage`
@@ -238,7 +270,7 @@ public struct BatchesDataSource<Element> {
       .store(in: &subscriptions)
     
     // Bind `Output.items`
-    items
+    itemsSubject
       .assign(to: \Output.items, on: output)
       .store(in: &subscriptions)
   }

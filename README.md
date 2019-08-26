@@ -16,6 +16,8 @@
 
 1.3 [Subscribing a completing publisher](#subscribing-a-completing-publisher)
 
+1.4 Batched/Paged list of elements
+
 2. [**Installation**](#installation)
 
 2.1 [Swift Package Manager](#swift-package-manager)
@@ -102,6 +104,14 @@ Just([Person(name: "test"])
 
 This will keep the subscriber and the data source alive until you cancel the subscription manually or it is released from memory.
 
+#### Batched/Paged list of elements
+
+A common pattern in list based views is to load a very long list of elements in "batches" or "pages". (The distinction being that pages imply ordered, equal-length batches.)
+
+**CombineDataSources** includes a data source allowing you to easily implement the batched list pattern called `BatchesDataSource`.
+
+
+
 ## Installation
 
 ### Swift Package Manager
@@ -111,6 +121,7 @@ Add the following dependency to your **Package.swift** file:
 ```swift
 .package(url: "https://github.com/combineopensource/CombineDataSources, from: "0.2")
 ```
+
 ## License
 
 CombineOpenSource is available under the MIT license. See the LICENSE file for more info.
