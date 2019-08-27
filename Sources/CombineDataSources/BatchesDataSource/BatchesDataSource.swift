@@ -62,7 +62,7 @@ public struct BatchesDataSource<Element> {
     case error(Error)
   }
   
-  /// Initialiazes a list data source using a token to fetch batches of items.
+  /// Initializes a list data source using a token to fetch batches of items.
   /// - Parameter items: initial list of items.
   /// - Parameter input: the input to control the data source.
   /// - Parameter initialToken: the token to use to fetch the first batch.

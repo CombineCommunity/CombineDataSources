@@ -9,7 +9,7 @@ import XCTest
 import CombineDataSources
 import UIKit
 
-struct Model: Equatable {
+struct Model: Hashable {
   var text: String
 }
 

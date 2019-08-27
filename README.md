@@ -110,7 +110,13 @@ A common pattern in list based views is to load a very long list of elements in 
 
 **CombineDataSources** includes a data source allowing you to easily implement the batched list pattern called `BatchesDataSource`.
 
+## Todo
 
+- [ ] make the batches data source prepend or append the new batch (e.g. new items come from the top or at the bottom)
+- [ ] cover every API with tests
+- [ ] make the default batches view controller neater
+- [ ] add AppKit version of the data sources
+- [ ] support Cocoapods
 
 ## Installation
 
