@@ -20,6 +20,10 @@ let dataSet2 = [
   Section(header: "section header", items: [Model(text: "test model")], footer: "section footer")
 ]
 
+func batch(of count: Int) -> [Model] {
+  (0..<count).map { Model(text: "test\($0)") }
+}
+
 // Provide fallback data source
 class TestDataSource: NSObject, UITableViewDataSource {
   func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -38,3 +42,6 @@ class TestDataSource: NSObject, UITableViewDataSource {
   }
 }
 
+enum TestError: Error {
+  case test
+}

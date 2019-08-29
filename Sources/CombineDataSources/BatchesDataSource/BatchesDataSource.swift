@@ -3,6 +3,39 @@
 //  (c) CombineOpenSource, Created by Marin Todorov.
 //
 
+/*
+ Data flow in BatchesDataSource:
+ Dashed boxes represent the inputs provided to `BatchesDataSource.init(...)`.
+ Single line boxes are the intermediate publishers.
+ Double line boxes are the published outputs.
+ 
+                                       ┌──────────────────────┐                   ╔════════════════════╗
+               ┌──────────────────────▶│     itemsSubject     │──────────────────▶║   Output.$items    ║◀───┐
+               │                       └──────────────────────┘                   ╚════════════════════╝    │
+               │                                                                  ╔════════════════════╗    │
+               │                       ┌──────────────────────┬──────────────────▶║ Output.$isLoading  ║    │
+               │                       │                      │                   ╚════════════════════╝    │
+               │                       │                      │                                             │
+               │             ┌───────────────────┐  ┌───────────────────┐  ┌───────────────────┐  ┌───────────────────┐
+       ┌──────────────┐      │                   │  │                   │  │                   │  │                   │
+ ┌─┬──▶│    reload    │──┬──▶│   batchRequest    │─▶│   batchResponse   │─▶│  successResponse  │─▶│      result       │
+ │ │   └──────────────┘  │   │                   │  │                   │  │                   │  │                   │
+ │ │                     │   └───────────────────┘  └───────────────────┘  └───────────────────┘  └───────────────────┘
+ │ │             ┌──────────────┐      ▲                      │                      │                      │
+ │ │             │   loadNext   │      └───────┐              │                      │                      │
+ │ │             └──────────────┘              │              │                ┌─────┘                      │
+ │ │                     ▲                     │              │                │                            │
+ │ │                     │          ┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─     │                │  ╔════════════════════╗    │
+ │ │  ┌ ─ ─ ─ ─ ─ ─ ─    │             loadNextBatch()   │    │                └─▶║Output.$isCompleted ║    │
+ │ └──  initialToken │   │          └ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─     │                   ╚════════════════════╝    │
+ │    └ ─ ─ ─ ─ ─ ─ ─    │                                    │                   ╔════════════════════╗    │
+ │                       │                                    └──────────────────▶║   Output.$error    ║    │
+ │  ┌ ─ ─ ─ ─ ─ ─ ─      │                                                        ╚════════════════════╝    │
+ └──     items     │     │                             ┌──────────────────┐                                 │
+    └ ─ ─ ─ ─ ─ ─ ─      └─────────────────────────────│      token       │◀────────────────────────────────┘
+                                                       └──────────────────┘
+ */
+
 import Foundation
 import Combine
 
@@ -46,83 +79,67 @@ public struct BatchesDataSource<Element> {
   
   /// The result of loading of a batch of items.
   public enum LoadResult {
-    /// A batch of `Element` items.
+    /// A batch of `Element` items to use with pages.
     case items([Element])
     
     /// A batch of `Element` items and a token to provide
     /// to the loader in order to fetch the next batch.
-    case itemsToken([Element], nextToken: Data)
+    case itemsToken([Element], nextToken: Data?)
     
     /// No more items available to fetch.
     case completed
   }
   
   enum ResponseResult {
-    case result((token: Data?, result: BatchesDataSource<Element>.LoadResult))
+    case result((token: Token, result: BatchesDataSource<Element>.LoadResult))
     case error(Error)
   }
   
-  /// Initializes a list data source using a token to fetch batches of items.
-  /// - Parameter items: initial list of items.
-  /// - Parameter input: the input to control the data source.
-  /// - Parameter initialToken: the token to use to fetch the first batch.
-  /// - Parameter loadItemsWithToken: a `(Data?) -> (Publisher<LoadResult, Error>)` closure that fetches a batch of items and returns the items fetched
-  ///   plus a token to use for the next batch. The token can be an alphanumerical id, a URL, or another type of token.
-  /// - Todo: if `withLatestFrom` is introduced, use it instead of grabbing the latest value unsafely.
-  public init(items: [Element] = [], input: BatchesInput, initialToken: Data?, loadItemsWithToken: @escaping (Data?) -> AnyPublisher<LoadResult, Error>) {
+  enum Token {
+    case int(Int)
+    case data(Data?)
+  }
+  
+  private init(items: [Element] = [], input: BatchesInput, initial: Token, loadNextCallback: @escaping (Token) -> AnyPublisher<LoadResult, Error>) {
     let itemsSubject = CurrentValueSubject<[Element], Never>(items)
-    let token = CurrentValueSubject<Data?, Never>(initialToken)
+    let token = CurrentValueSubject<Token, Never>(initial)
 
     self.input = input
     let output = self.output
     
-    let reload = input.reload
-      .share()
-
-    reload
-      .map { _ in
-        return items
-      }
+    input.reload
+      .map { _ in items }
+      .append(Empty(completeImmediately: false))
       .subscribe(itemsSubject)
       .store(in: &subscriptions)
-    
+
     let loadNext = input.loadNext
       .map { token.value }
     
-    let batchRequest = loadNext.merge(with: reload.map { initialToken })
-      .share()
-      .prepend(initialToken)
-    
-    let batchResponse = batchRequest
-      .flatMap { token in
-        return loadItemsWithToken(token)
-          .map { result -> ResponseResult in
-            return .result((token: token, result: result))
-          }
-          .catch { error in
-            Just(ResponseResult.error(error))
-          }
-      }
+    let batchRequest = loadNext
+      .merge(with: input.reload.prepend(()).map { initial })
       .eraseToAnyPublisher()
-      .share()
-    
+
+    // TODO: avoid having extra subject when `shareReplay()` is introduced.
+    let batchResponse = PassthroughSubject<ResponseResult, Never>()
+        
     batchResponse
-      .compactMap { result -> Error? in
+      .map { result -> Error? in
         switch result {
         case .error(let error): return error
         default: return nil
         }
       }
-    .assign(to: \Output.error, on: output)
-    .store(in: &subscriptions)
-    
+      .assign(to: \Output.error, on: output)
+      .store(in: &subscriptions)
+
     // Bind `Output.isLoading`
     Publishers.Merge(batchRequest.map { _ in true }, batchResponse.map { _ in false })
       .assign(to: \Output.isLoading, on: output)
       .store(in: &subscriptions)
 
     let successResponse = batchResponse
-      .compactMap { result -> (token: Data?, result: BatchesDataSource<Element>.LoadResult)? in
+      .compactMap { result -> (token: Token, result: BatchesDataSource<Element>.LoadResult)? in
         switch result {
         case .result(let result): return result
         default: return nil
@@ -142,11 +159,16 @@ public struct BatchesDataSource<Element> {
       .store(in: &subscriptions)
 
     let result = successResponse
-      .compactMap { tuple -> (token: Data?, items: [Element], nextToken: Data?)? in
+      .compactMap { tuple -> (token: Token, items: [Element], nextToken: Token)? in
         switch tuple.result {
-        case .completed: return nil
-        case .itemsToken(let elements, let nextToken): return (token: tuple.token, items: elements, nextToken: nextToken)
-        default: fatalError()
+        case .completed:
+          return nil
+        case .items(let elements):
+          // Fix incremeneting page number
+          guard case Token.int(let currentPage) = tuple.token else { fatalError() }
+          return (token: tuple.token, items: elements, nextToken: .int(currentPage+1))
+        case .itemsToken(let elements, let nextToken):
+          return (token: tuple.token, items: elements, nextToken: .data(nextToken))
         }
       }
       .share()
@@ -160,6 +182,7 @@ public struct BatchesDataSource<Element> {
     // Bind `items`
     result
       .map {
+        // TODO: Solve for `withLatestFrom(_)`
         let currentItems = itemsSubject.value
         return currentItems + $0.items
       }
@@ -170,6 +193,39 @@ public struct BatchesDataSource<Element> {
     itemsSubject
       .assign(to: \Output.items, on: output)
       .store(in: &subscriptions)
+        
+    batchRequest
+      .assertMaxSubscriptions(1)
+      .flatMap { token in
+        return loadNextCallback(token)
+          .map { result -> ResponseResult in
+            return .result((token: token, result: result))
+          }
+          .catch { error in
+            Just(ResponseResult.error(error))
+          }
+          .append(Empty(completeImmediately: true))
+      }
+      .sink(receiveValue: batchResponse.send)
+      .store(in: &subscriptions)
+
+  }
+  
+  /// Initializes a list data source using a token to fetch batches of items.
+  /// - Parameter items: initial list of items.
+  /// - Parameter input: the input to control the data source.
+  /// - Parameter initialToken: the token to use to fetch the first batch.
+  /// - Parameter loadItemsWithToken: a `(Data?) -> (Publisher<LoadResult, Error>)` closure that fetches a batch of items and returns the items fetched
+  ///   plus a token to use for the next batch. The token can be an alphanumerical id, a URL, or another type of token.
+  /// - Todo: if `withLatestFrom` is introduced, use it instead of grabbing the latest value unsafely.
+  public init(items: [Element] = [], input: BatchesInput, initialToken: Data?, loadItemsWithToken: @escaping (Data?) -> AnyPublisher<LoadResult, Error>) {
+    self.init(items: items, input: input, initial: Token.data(initialToken), loadNextCallback: { token -> AnyPublisher<LoadResult, Error> in
+      switch token {
+      case .data(let data):
+        return loadItemsWithToken(data)
+      default: fatalError()
+      }
+    })
   }
 
   /// Initialiazes a list data source of items batched in numbered pages.
@@ -179,100 +235,29 @@ public struct BatchesDataSource<Element> {
   /// - Parameter loadPage: a `(Int) -> (Publisher<LoadResult, Error>)` closure that fetches a batch of items.
   /// - Todo: if `withLatestFrom` is introduced, use it instead of grabbing the latest value unsafely.
   public init(items: [Element] = [], input: BatchesInput, initialPage: Int = 0, loadPage: @escaping (Int) -> AnyPublisher<LoadResult, Error>) {
-    let itemsSubject = CurrentValueSubject<[Element], Never>(items)
-    let currentPage = CurrentValueSubject<Int, Never>(initialPage)
-    
-    self.input = input
-    let output = self.output
-    
-    let reload = input.reload
-      .share()
-    
-    reload
-      .map { _ in
-        return items
+    self.init(items: items, input: input, initial: Token.int(initialPage), loadNextCallback: { page -> AnyPublisher<LoadResult, Error> in
+      switch page {
+      case .int(let page):
+        return loadPage(page)
+      default: fatalError()
       }
-      .subscribe(itemsSubject)
-      .store(in: &subscriptions)
-
-    let loadNext = input.loadNext
-      .map { currentPage.value + 1 }
-    
-    let pageRequest = loadNext.merge(with: reload.map { -1 })
-      .share()
-      .prepend(1)
-
-    // TODO: Add the response error handling like for batches
-    
-    // Bind `Output.isLoading = true`
-    pageRequest
-      .map { _ in true }
-      .assign(to: \Output.isLoading, on: output)
-      .store(in: &subscriptions)
-    
-    let pageResponse = pageRequest
-      .flatMap { page in
-        return loadPage(page == -1 ? 1 : page)
-          .handleEvents(receiveOutput: { _ in
-            output.error = nil
-          },
-          receiveCompletion: { completion in
-            if case Subscribers.Completion.failure(let error) = completion {
-              output.error = error
-            } else {
-              output.error = nil
-            }
-          })
-          .catch { _ in
-            return Empty()
-          }
-          .map { (pageNumber: page, result: $0) }
-      }
-      .eraseToAnyPublisher()
-      .share()
-
-    // Bind `Output.isLoading = false`
-    Publishers.Merge(pageRequest.map { _ in true }, pageResponse.map { _ in false })
-      .assign(to: \Output.isLoading, on: output)
-      .store(in: &subscriptions)
-
-    // Bind `Output.isCompleted`
-    pageResponse
-      .map { tuple -> Bool in
-        switch tuple.result {
-        case .completed: return true
-        default: return false
-        }
-      }
-      .assign(to: \Output.isCompleted, on: output)
-      .store(in: &subscriptions)
-    
-    // Bind `items`
-    pageResponse
-      .compactMap { tuple -> (pageNumber: Int, items: [Element])? in
-        switch tuple.result {
-        case .completed: return nil
-        case .items(let elements): return (pageNumber: tuple.pageNumber, items: elements)
-        default: fatalError()
-        }
-      }
-      .map {
-        let currentItems = itemsSubject.value
-        return currentItems + $0.items
-      }
-      .subscribe(itemsSubject)
-      .store(in: &subscriptions)
-    
-    // Bind `currentPage`
-    pageResponse
-      .map { $0.pageNumber }
-      .subscribe(currentPage)
-      .store(in: &subscriptions)
-    
-    // Bind `Output.items`
-    itemsSubject
-      .assign(to: \Output.items, on: output)
-      .store(in: &subscriptions)
+    })
   }
 }
 
+fileprivate var uuids = [String: Int]()
+
+extension Publisher {
+  public func assertMaxSubscriptions(_ max: Int, file: StaticString = #file, line: UInt = #line) -> AnyPublisher<Output, Failure> {
+    let uuid = "\(file):\(line)"
+    
+    return handleEvents(receiveSubscription: { _ in
+      let count = uuids[uuid] ?? 0
+      guard count < max else {
+        assert(false, "Publisher subscribed more than \(max) times.")
+        return
+      }
+      uuids[uuid] = count + 1
+    }).eraseToAnyPublisher()
+  }
+}

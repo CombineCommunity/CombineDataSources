@@ -4,10 +4,32 @@
 //
 
 import UIKit
+import Combine
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
+  var subscriptions = [AnyCancellable]()
+  
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+    let publisher = Future<String, Never> { promise in
+      print("request network data")
+      
+      DispatchQueue.main.async {
+        promise(.success("JSON"))
+      }
+    }
+    .eraseToAnyPublisher()
+    .assertMaxSubscriptions(1)
+    .share()
+
+    publisher
+    .sink { print($0) }
+    .store(in: &subscriptions)
+
+    publisher
+    .sink { print($0) }
+    .store(in: &subscriptions)
+    
     return true
   }
 

@@ -112,6 +112,7 @@ A common pattern in list based views is to load a very long list of elements in 
 
 ## Todo
 
+- [ ] use a @Published for the time being instead of withLatestFrom
 - [ ] make the batches data source prepend or append the new batch (e.g. new items come from the top or at the bottom)
 - [ ] cover every API with tests
 - [ ] make the default batches view controller neater
