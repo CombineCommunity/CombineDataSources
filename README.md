@@ -16,7 +16,7 @@
 
 1.3 [Subscribing a completing publisher](#subscribing-a-completing-publisher)
 
-1.4 Batched/Paged list of elements
+1.4 [List loaded in batches](#list-loaded-in-batches)
 
 2. [**Installation**](#installation)
 
@@ -104,14 +104,67 @@ Just([Person(name: "test"])
 
 This will keep the subscriber and the data source alive until you cancel the subscription manually or it is released from memory.
 
-#### Batched/Paged list of elements
+#### List loaded in batches
 
-A common pattern in list based views is to load a very long list of elements in "batches" or "pages". (The distinction being that pages imply ordered, equal-length batches.)
+A common pattern for list views is to load a very long list of elements in "batches" or "pages". (The distinction being that pages imply ordered, equal-length batches.)
 
-**CombineDataSources** includes a data source allowing you to easily implement the batched list pattern called `BatchesDataSource`.
+**CombineDataSources** includes a data source allowing you to easily implement the batched list pattern called `BatchesDataSource` and a table view controller `TableViewBatchesController` which wraps loading items in batches via the said data source and managing your UI.
+
+In case you want to implement your own custom logic, you can use directly the data source type:
+
+```swift
+let input = BatchesInput(
+  reload: resetSubject.eraseToAnyPublisher(),
+  loadNext: loadNextSubject.eraseToAnyPublisher()
+)
+
+let dataSource = BatchesDataSource<String>(
+  items: ["Initial Element"],
+  input: input,
+  initialToken: nil,
+  loadItemsWithToken: { token in
+    return MockAPI.requestBatchCustomToken(token)
+  })
+```
+
+`dataSource` is controlled via the two inputs:
+
+- `input.reload` (to reload the very first batch) and 
+
+- `loadNext` (to load each next batch) 
+  
+  The data source has four outputs: 
+
+- `output.$items` is the current list of elements,
+
+- `output.$isLoading` whether it's currently fetching a batch of elements, 
+
+- `output.$isCompleted` whether the data source fetched all available elements, and 
+
+- `output.$error` which is a stream of `Error?` elements where errors by the loading closure will bubble up.
+
+In case you'd like to use the provided controller the code is fairly simple as well. You use the standard table view items controller and `TableViewBatchesController` like so:
+
+```swift
+let itemsController = TableViewItemsController<[[String]]>(cellIdentifier: "Cell", cellType: UITableViewCell.self, cellConfig: { cell, indexPath, text in
+  cell.textLabel!.text = "\(indexPath.row+1). \(text)"
+})
+
+let tableController = TableViewBatchesController<String>(
+  tableView: tableView,
+  itemsController: itemsController,
+  initialToken: nil,
+  loadItemsWithToken: { nextToken in
+    MockAPI.requestBatch(token: nextToken)
+  }
+)
+```
+
+`tableController` will set the table view data source, fetch items, and display cells with the proper animations.
 
 ## Todo
 
+- [ ] much better README, pls
 - [ ] use a @Published for the time being instead of withLatestFrom
 - [ ] make the batches data source prepend or append the new batch (e.g. new items come from the top or at the bottom)
 - [ ] cover every API with tests

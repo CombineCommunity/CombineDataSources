@@ -195,7 +195,6 @@ public struct BatchesDataSource<Element> {
       .store(in: &subscriptions)
         
     batchRequest
-      .assertMaxSubscriptions(1)
       .flatMap { token in
         return loadNextCallback(token)
           .map { result -> ResponseResult in
