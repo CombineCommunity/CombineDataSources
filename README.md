@@ -2,7 +2,7 @@
 
 **CombineDataSources** provides custom Combine subscribers that act as table and collection view controllers and bind a stream of element collections to table or collection sections with cells.  
 
-⚠️⚠️⚠️ **Note**: The package is currently work in progress.
+⚠️⚠️⚠️ **Note** 🚨🚨🚨: The package is currently work in progress.
 
 ### Table of Contents
 
@@ -14,9 +14,7 @@
 
 1.2 [Customize the table controller](#customize-the-table-controller)
 
-1.3 [Subscribing a completing publisher](#subscribing-a-completing-publisher)
-
-1.4 [List loaded in batches](#list-loaded-in-batches)
+1.3 [List loaded in batches](#list-loaded-in-batches)
 
 2. [**Installation**](#installation)
 
@@ -38,9 +36,10 @@ The repo contains a demo app in the *Example* sub-folder that demonstrates visua
 var data = PassthroughSubject<[Person], Never>()
 
 data
-  .subscribe(subscriber: tableView.rowsSubscriber(cellIdentifier: "Cell", cellType: PersonCell.self, cellConfig: { cell, indexPath, model in
+  .bind(subscriber: tableView.rowsSubscriber(cellIdentifier: "Cell", cellType: PersonCell.self, cellConfig: { cell, indexPath, model in
     cell.nameLabel.text = model.name
   }))
+  .store(in: &subscriptions)
 ```
 
 ![Plain list updates with CombineDataSources](https://github.com/combineopensource/CombineDataSources/raw/master/Assets/plain-list.gif)
@@ -49,10 +48,11 @@ Respectively for a collection view:
 
 ```swift
 data
-  .subscribe(collectionView.itemsSubscriber(cellIdentifier: "Cell", cellType: PersonCollectionCell.self, cellConfig: { cell, indexPath, model in
+  .bind(subscriber: collectionView.itemsSubscriber(cellIdentifier: "Cell", cellType: PersonCollectionCell.self, cellConfig: { cell, indexPath, model in
     cell.nameLabel.text = model.name
     cell.imageURL = URL(string: "https://api.adorable.io/avatars/100/\(model.name)")!
   }))
+  .store(in: &subscriptions)
 ```
 
 ![Plain list updates for a collection view](https://github.com/combineopensource/CombineDataSources/raw/master/Assets/plain-collection.gif)
@@ -63,9 +63,10 @@ data
 var data = PassthroughSubject<[Section<Person>], Never>()
 
 data
-  .subscribe(subscriber: tableView.sectionsSubscriber(cellIdentifier: "Cell", cellType: PersonCell.self, cellConfig: { cell, indexPath, model in
+  .bind(subscriber: tableView.sectionsSubscriber(cellIdentifier: "Cell", cellType: PersonCell.self, cellConfig: { cell, indexPath, model in
     cell.nameLabel.text = model.name
   }))
+  .store(in: &subscriptions)
 ```
 
 ![Sectioned list updates with CombineDataSources](https://github.com/combineopensource/CombineDataSources/raw/master/Assets/sections-list.gif)
@@ -83,26 +84,9 @@ controller.animated = false
 // More custom controller configuration ...
 
 data
-  .subscribe(subscriber: tableView.sectionsSubscriber(controller))
-```
-
-#### Subscribing a completing publisher
-
-Sometimes you'll bind a publisher to your table or collection view and it will complete at a point. When you use `subscribe(_)` the completion event will release the CombineDataSource subscriber as well and that will likely render the table/collection empty.
-
-In such case you can use the custom operator included in **CombineDataSources** `subscribe(retaining:)` that will give you an `AnyCancellable` to retain the subscriber, like so:
-
-```swift
-var subscriptions = [AnyCancellable]()
-...
-Just([Person(name: "test"])
-  .subscribe(retaining: tableView.rowsSubscriber(cellIdentifier: "Cell", cellType: UITableViewCell.self, cellConfig: { (cell, ip, person) in
-    cell.textLabel!.text = person.name
-  }))
+  .subscribe(bind: tableView.sectionsSubscriber(controller))
   .store(in: &subscriptions)
 ```
-
-This will keep the subscriber and the data source alive until you cancel the subscription manually or it is released from memory.
 
 #### List loaded in batches
 
@@ -185,6 +169,10 @@ Add the following dependency to your **Package.swift** file:
 ## License
 
 CombineOpenSource is available under the MIT license. See the LICENSE file for more info.
+
+## Combine Open Source
+
+Join ![Combine Slack channel](Assets/slack.png) [https://combineopensource.slack.com](https://combineopensource.slack.com) for Combine related talk.
 
 ## Credits
 

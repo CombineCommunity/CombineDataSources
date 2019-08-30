@@ -73,7 +73,7 @@ public class TableViewBatchesController<Element: Hashable> {
     // Display items in table view.
     batchesDataSource.output.$items
       .receive(on: DispatchQueue.main)
-      .subscribe(retaining: tableView.rowsSubscriber(itemsController))
+      .bind(subscriber: tableView.rowsSubscriber(itemsController))
       .store(in: &subscriptions)
     
     // Show/hide spinner.

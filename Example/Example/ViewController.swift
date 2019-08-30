@@ -57,9 +57,8 @@ class ViewController: UIViewController {
     switch demo {
     case .plain:
       // A plain list with a single section -> Publisher<[Person], Never>
-      data
-        .map { $0[0] }
-        .subscribe(retaining: tableView.rowsSubscriber(cellIdentifier: "Cell", cellType: PersonCell.self, cellConfig: { cell, indexPath, model in
+      first.publisher
+        .bind(subscriber: tableView.rowsSubscriber(cellIdentifier: "Cell", cellType: PersonCell.self, cellConfig: { cell, indexPath, model in
           cell.nameLabel.text = "\(indexPath.section+1).\(indexPath.row+1) \(model.name)"
         }))
         .store(in: &subscriptions)
@@ -67,7 +66,7 @@ class ViewController: UIViewController {
     case .multiple:
       // Table with sections -> Publisher<[[Person]], Never>
       data
-        .subscribe(retaining: tableView.sectionsSubscriber(cellIdentifier: "Cell", cellType: PersonCell.self, cellConfig: { cell, indexPath, model in
+        .bind(subscriber: tableView.sectionsSubscriber(cellIdentifier: "Cell", cellType: PersonCell.self, cellConfig: { cell, indexPath, model in
           cell.nameLabel.text = "\(indexPath.section+1).\(indexPath.row+1) \(model.name)"
         }))
         .store(in: &subscriptions)
@@ -80,7 +79,7 @@ class ViewController: UIViewController {
             return Section(header: "Header", items: persons, footer: "Footer")
           }
         }
-        .subscribe(retaining: tableView.sectionsSubscriber(cellIdentifier: "Cell", cellType: PersonCell.self, cellConfig: { cell, indexPath, model in
+        .bind(subscriber: tableView.sectionsSubscriber(cellIdentifier: "Cell", cellType: PersonCell.self, cellConfig: { cell, indexPath, model in
           cell.nameLabel.text = "\(indexPath.section+1).\(indexPath.row+1) \(model.name)"
         }))
         .store(in: &subscriptions)
@@ -93,7 +92,7 @@ class ViewController: UIViewController {
       controller.animated = false
       
       data
-        .subscribe(retaining: tableView.sectionsSubscriber(controller))
+        .bind(subscriber: tableView.sectionsSubscriber(controller))
         .store(in: &subscriptions)
     }
 
