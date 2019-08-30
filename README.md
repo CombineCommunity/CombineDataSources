@@ -12,7 +12,7 @@
 
 1.2 [Bind a list of Section models](#bind-a-list-of-section-models)
 
-1.2 [Customize the table controller](#customize-the-table-controller)
+1.2 [Customize the list controller](#customize-the-table-controller)
 
 1.3 [List loaded in batches](#list-loaded-in-batches)
 
@@ -28,7 +28,9 @@
 
 ## Usage
 
-The repo contains a demo app in the *Example* sub-folder that demonstrates visually different ways to use CombineDataSources.
+#### Demo App 📱
+
+The repo contains a demo app in the *Example* sub-folder that demonstrates the different ways to use CombineDataSources in practice.
 
 #### Bind a plain list of elements
 
@@ -172,7 +174,7 @@ CombineOpenSource is available under the MIT license. See the LICENSE file for m
 
 ## Combine Open Source
 
-Join ![Combine Slack channel](Assets/slack.png) [https://combineopensource.slack.com](https://combineopensource.slack.com) for Combine related talk.
+![Combine Slack channel](Assets/slack.png) Join at:  [https://combineopensource.slack.com](https://combineopensource.slack.com) for Combine related talk.
 
 ## Credits
 
