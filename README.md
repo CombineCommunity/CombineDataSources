@@ -2,7 +2,7 @@
 
 **CombineDataSources** provides custom Combine subscribers that act as table and collection view controllers and bind a stream of element collections to table or collection sections with cells.  
 
-⚠️⚠️⚠️ **Note**: The package is currently work in progress.
+⚠️⚠️⚠️ **Note** 🚨🚨🚨: The package is currently work in progress.
 
 ### Table of Contents
 
@@ -12,9 +12,9 @@
 
 1.2 [Bind a list of Section models](#bind-a-list-of-section-models)
 
-1.2 [Customize the table controller](#customize-the-table-controller)
+1.2 [Customize the list controller](#customize-the-table-controller)
 
-1.3 [Subscribing a completing publisher](#subscribing-a-completing-publisher)
+1.3 [List loaded in batches](#list-loaded-in-batches)
 
 2. [**Installation**](#installation)
 
@@ -28,7 +28,9 @@
 
 ## Usage
 
-The repo contains a demo app in the *Example* sub-folder that demonstrates visually different ways to use CombineDataSources.
+#### Demo App 📱
+
+The repo contains a demo app in the *Example* sub-folder that demonstrates the different ways to use CombineDataSources in practice.
 
 #### Bind a plain list of elements
 
@@ -36,9 +38,10 @@ The repo contains a demo app in the *Example* sub-folder that demonstrates visua
 var data = PassthroughSubject<[Person], Never>()
 
 data
-  .subscribe(subscriber: tableView.rowsSubscriber(cellIdentifier: "Cell", cellType: PersonCell.self, cellConfig: { cell, indexPath, model in
+  .bind(subscriber: tableView.rowsSubscriber(cellIdentifier: "Cell", cellType: PersonCell.self, cellConfig: { cell, indexPath, model in
     cell.nameLabel.text = model.name
   }))
+  .store(in: &subscriptions)
 ```
 
 ![Plain list updates with CombineDataSources](https://github.com/combineopensource/CombineDataSources/raw/master/Assets/plain-list.gif)
@@ -47,10 +50,11 @@ Respectively for a collection view:
 
 ```swift
 data
-  .subscribe(collectionView.itemsSubscriber(cellIdentifier: "Cell", cellType: PersonCollectionCell.self, cellConfig: { cell, indexPath, model in
+  .bind(subscriber: collectionView.itemsSubscriber(cellIdentifier: "Cell", cellType: PersonCollectionCell.self, cellConfig: { cell, indexPath, model in
     cell.nameLabel.text = model.name
     cell.imageURL = URL(string: "https://api.adorable.io/avatars/100/\(model.name)")!
   }))
+  .store(in: &subscriptions)
 ```
 
 ![Plain list updates for a collection view](https://github.com/combineopensource/CombineDataSources/raw/master/Assets/plain-collection.gif)
@@ -61,9 +65,10 @@ data
 var data = PassthroughSubject<[Section<Person>], Never>()
 
 data
-  .subscribe(subscriber: tableView.sectionsSubscriber(cellIdentifier: "Cell", cellType: PersonCell.self, cellConfig: { cell, indexPath, model in
+  .bind(subscriber: tableView.sectionsSubscriber(cellIdentifier: "Cell", cellType: PersonCell.self, cellConfig: { cell, indexPath, model in
     cell.nameLabel.text = model.name
   }))
+  .store(in: &subscriptions)
 ```
 
 ![Sectioned list updates with CombineDataSources](https://github.com/combineopensource/CombineDataSources/raw/master/Assets/sections-list.gif)
@@ -81,26 +86,77 @@ controller.animated = false
 // More custom controller configuration ...
 
 data
-  .subscribe(subscriber: tableView.sectionsSubscriber(controller))
-```
-
-#### Subscribing a completing publisher
-
-Sometimes you'll bind a publisher to your table or collection view and it will complete at a point. When you use `subscribe(_)` the completion event will release the CombineDataSource subscriber as well and that will likely render the table/collection empty.
-
-In such case you can use the custom operator included in **CombineDataSources** `subscribe(retaining:)` that will give you an `AnyCancellable` to retain the subscriber, like so:
-
-```swift
-var subscriptions = [AnyCancellable]()
-...
-Just([Person(name: "test"])
-  .subscribe(retaining: tableView.rowsSubscriber(cellIdentifier: "Cell", cellType: UITableViewCell.self, cellConfig: { (cell, ip, person) in
-    cell.textLabel!.text = person.name
-  }))
+  .subscribe(bind: tableView.sectionsSubscriber(controller))
   .store(in: &subscriptions)
 ```
 
-This will keep the subscriber and the data source alive until you cancel the subscription manually or it is released from memory.
+#### List loaded in batches
+
+A common pattern for list views is to load a very long list of elements in "batches" or "pages". (The distinction being that pages imply ordered, equal-length batches.)
+
+**CombineDataSources** includes a data source allowing you to easily implement the batched list pattern called `BatchesDataSource` and a table view controller `TableViewBatchesController` which wraps loading items in batches via the said data source and managing your UI.
+
+In case you want to implement your own custom logic, you can use directly the data source type:
+
+```swift
+let input = BatchesInput(
+  reload: resetSubject.eraseToAnyPublisher(),
+  loadNext: loadNextSubject.eraseToAnyPublisher()
+)
+
+let dataSource = BatchesDataSource<String>(
+  items: ["Initial Element"],
+  input: input,
+  initialToken: nil,
+  loadItemsWithToken: { token in
+    return MockAPI.requestBatchCustomToken(token)
+  })
+```
+
+`dataSource` is controlled via the two inputs:
+
+- `input.reload` (to reload the very first batch) and 
+
+- `loadNext` (to load each next batch) 
+  
+  The data source has four outputs: 
+
+- `output.$items` is the current list of elements,
+
+- `output.$isLoading` whether it's currently fetching a batch of elements, 
+
+- `output.$isCompleted` whether the data source fetched all available elements, and 
+
+- `output.$error` which is a stream of `Error?` elements where errors by the loading closure will bubble up.
+
+In case you'd like to use the provided controller the code is fairly simple as well. You use the standard table view items controller and `TableViewBatchesController` like so:
+
+```swift
+let itemsController = TableViewItemsController<[[String]]>(cellIdentifier: "Cell", cellType: UITableViewCell.self, cellConfig: { cell, indexPath, text in
+  cell.textLabel!.text = "\(indexPath.row+1). \(text)"
+})
+
+let tableController = TableViewBatchesController<String>(
+  tableView: tableView,
+  itemsController: itemsController,
+  initialToken: nil,
+  loadItemsWithToken: { nextToken in
+    MockAPI.requestBatch(token: nextToken)
+  }
+)
+```
+
+`tableController` will set the table view data source, fetch items, and display cells with the proper animations.
+
+## Todo
+
+- [ ] much better README, pls
+- [ ] use a @Published for the time being instead of withLatestFrom
+- [ ] make the batches data source prepend or append the new batch (e.g. new items come from the top or at the bottom)
+- [ ] cover every API with tests
+- [ ] make the default batches view controller neater
+- [ ] add AppKit version of the data sources
+- [ ] support Cocoapods
 
 ## Installation
 
@@ -111,9 +167,18 @@ Add the following dependency to your **Package.swift** file:
 ```swift
 .package(url: "https://github.com/combineopensource/CombineDataSources, from: "0.2")
 ```
+
 ## License
 
 CombineOpenSource is available under the MIT license. See the LICENSE file for more info.
+
+## Combine Open Source
+
+![Combine Slack channel](Assets/slack.png) 
+
+CombineOpenSource Slack channel: [https://combineopensource.slack.com](https://combineopensource.slack.com). 
+
+[Sign up here](https://join.slack.com/t/combineopensource/shared_invite/enQtNzQ1MzYyMTMxOTkxLWJkZmNkZDU4MTE4NmU2MjBhYzM5NzI1NTRlNWNhODFiMDEyMjVjOWZmZWI2NmViMzU3ZjZhYjc0YTExOGZmMDM)
 
 ## Credits
 

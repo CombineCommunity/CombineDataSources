@@ -15,11 +15,11 @@ class PersonCell: UITableViewCell {
   @IBOutlet var nameLabel: UILabel!
 }
 
-enum Demo: Int, RawRepresentable {
-  case plain, multiple, sections, noAnimations
-}
-
 class ViewController: UIViewController {
+  enum Demo: Int, RawRepresentable {
+    case plain, multiple, sections, noAnimations
+  }
+
   @IBOutlet var tableView: UITableView!
   
   // The kind of demo to show
@@ -37,6 +37,7 @@ class ViewController: UIViewController {
   
   // Publisher to emit data to the table
   var data = PassthroughSubject<[[Person]], Never>()
+  var subscriptions = [AnyCancellable]()
   
   private var flag = false
   
@@ -56,18 +57,19 @@ class ViewController: UIViewController {
     switch demo {
     case .plain:
       // A plain list with a single section -> Publisher<[Person], Never>
-      data
-        .map { $0[0] }
-        .subscribe(tableView.rowsSubscriber(cellIdentifier: "Cell", cellType: PersonCell.self, cellConfig: { cell, indexPath, model in
+      first.publisher
+        .bind(subscriber: tableView.rowsSubscriber(cellIdentifier: "Cell", cellType: PersonCell.self, cellConfig: { cell, indexPath, model in
           cell.nameLabel.text = "\(indexPath.section+1).\(indexPath.row+1) \(model.name)"
         }))
+        .store(in: &subscriptions)
       
     case .multiple:
       // Table with sections -> Publisher<[[Person]], Never>
       data
-        .subscribe(tableView.sectionsSubscriber(cellIdentifier: "Cell", cellType: PersonCell.self, cellConfig: { cell, indexPath, model in
+        .bind(subscriber: tableView.sectionsSubscriber(cellIdentifier: "Cell", cellType: PersonCell.self, cellConfig: { cell, indexPath, model in
           cell.nameLabel.text = "\(indexPath.section+1).\(indexPath.row+1) \(model.name)"
         }))
+        .store(in: &subscriptions)
 
     case .sections:
       // Table with section driven by `Section` models -> Publisher<[Section<Person>], Never>
@@ -77,9 +79,10 @@ class ViewController: UIViewController {
             return Section(header: "Header", items: persons, footer: "Footer")
           }
         }
-        .subscribe(tableView.sectionsSubscriber(cellIdentifier: "Cell", cellType: PersonCell.self, cellConfig: { cell, indexPath, model in
+        .bind(subscriber: tableView.sectionsSubscriber(cellIdentifier: "Cell", cellType: PersonCell.self, cellConfig: { cell, indexPath, model in
           cell.nameLabel.text = "\(indexPath.section+1).\(indexPath.row+1) \(model.name)"
         }))
+        .store(in: &subscriptions)
       
     case .noAnimations:
       // Use custom controller to disable animations
@@ -89,7 +92,8 @@ class ViewController: UIViewController {
       controller.animated = false
       
       data
-        .subscribe(tableView.sectionsSubscriber(controller))
+        .bind(subscriber: tableView.sectionsSubscriber(controller))
+        .store(in: &subscriptions)
     }
 
     reload()

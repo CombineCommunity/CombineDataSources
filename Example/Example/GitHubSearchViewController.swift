@@ -30,7 +30,7 @@ class GitHubSearchViewController: UIViewController, UISearchBarDelegate {
       .map { $0.items }
       .replaceError(with: [])
       .receive(on: DispatchQueue.main)
-      .subscribe(retaining: tableView.rowsSubscriber(cellIdentifier: "Cell", cellType: UITableViewCell.self, cellConfig: { (cell, ip, repo) in
+      .bind(subscriber: tableView.rowsSubscriber(cellIdentifier: "Cell", cellType: UITableViewCell.self, cellConfig: { (cell, ip, repo) in
         cell.textLabel!.text = repo.name
         cell.detailTextLabel!.text = repo.description
       }))

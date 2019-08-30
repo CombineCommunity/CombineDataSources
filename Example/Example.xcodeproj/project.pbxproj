@@ -9,6 +9,9 @@
 /* Begin PBXBuildFile section */
 		9C326989230B2DDE00E93F9C /* CollectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C326988230B2DDE00E93F9C /* CollectionViewController.swift */; };
 		9C371EE7230356CE00617B57 /* MenuTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C371EE6230356CE00617B57 /* MenuTableViewController.swift */; };
+		9C7E190B2313E02D00518E33 /* CustomBatchesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C7E190A2313E02D00518E33 /* CustomBatchesViewController.swift */; };
+		9CA01D192312EF7C00666EDE /* BatchesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CA01D182312EF7C00666EDE /* BatchesViewController.swift */; };
+		9CA01D1C2312F4CF00666EDE /* SampleData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CA01D1B2312F4CF00666EDE /* SampleData.swift */; };
 		9CA4B70D23048B470041CBA4 /* GitHubSearchViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CA4B70C23048B470041CBA4 /* GitHubSearchViewController.swift */; };
 		9CB630CA22FD510000368A0D /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CB630C922FD510000368A0D /* AppDelegate.swift */; };
 		9CB630CC22FD510000368A0D /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CB630CB22FD510000368A0D /* SceneDelegate.swift */; };
@@ -22,6 +25,9 @@
 /* Begin PBXFileReference section */
 		9C326988230B2DDE00E93F9C /* CollectionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionViewController.swift; sourceTree = "<group>"; };
 		9C371EE6230356CE00617B57 /* MenuTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuTableViewController.swift; sourceTree = "<group>"; };
+		9C7E190A2313E02D00518E33 /* CustomBatchesViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomBatchesViewController.swift; sourceTree = "<group>"; };
+		9CA01D182312EF7C00666EDE /* BatchesViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchesViewController.swift; sourceTree = "<group>"; };
+		9CA01D1B2312F4CF00666EDE /* SampleData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleData.swift; sourceTree = "<group>"; };
 		9CA4B70C23048B470041CBA4 /* GitHubSearchViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubSearchViewController.swift; sourceTree = "<group>"; };
 		9CB630C622FD510000368A0D /* Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Example.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9CB630C922FD510000368A0D /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -46,6 +52,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		9CA01D1A2312F4C700666EDE /* etc */ = {
+			isa = PBXGroup;
+			children = (
+				9CA01D1B2312F4CF00666EDE /* SampleData.swift */,
+			);
+			path = etc;
+			sourceTree = "<group>";
+		};
 		9CB630BD22FD510000368A0D = {
 			isa = PBXGroup;
 			children = (
@@ -67,12 +81,15 @@
 		9CB630C822FD510000368A0D /* Example */ = {
 			isa = PBXGroup;
 			children = (
+				9CA01D1A2312F4C700666EDE /* etc */,
 				9CB630C922FD510000368A0D /* AppDelegate.swift */,
 				9CB630CB22FD510000368A0D /* SceneDelegate.swift */,
 				9C371EE6230356CE00617B57 /* MenuTableViewController.swift */,
 				9CB630CD22FD510000368A0D /* ViewController.swift */,
 				9C326988230B2DDE00E93F9C /* CollectionViewController.swift */,
 				9CA4B70C23048B470041CBA4 /* GitHubSearchViewController.swift */,
+				9CA01D182312EF7C00666EDE /* BatchesViewController.swift */,
+				9C7E190A2313E02D00518E33 /* CustomBatchesViewController.swift */,
 				9CB630CF22FD510000368A0D /* Main.storyboard */,
 				9CB630D222FD510100368A0D /* Assets.xcassets */,
 				9CB630D422FD510100368A0D /* LaunchScreen.storyboard */,
@@ -165,10 +182,13 @@
 			files = (
 				9C326989230B2DDE00E93F9C /* CollectionViewController.swift in Sources */,
 				9C371EE7230356CE00617B57 /* MenuTableViewController.swift in Sources */,
+				9CA01D192312EF7C00666EDE /* BatchesViewController.swift in Sources */,
 				9CB630CE22FD510000368A0D /* ViewController.swift in Sources */,
 				9CA4B70D23048B470041CBA4 /* GitHubSearchViewController.swift in Sources */,
 				9CB630CA22FD510000368A0D /* AppDelegate.swift in Sources */,
 				9CB630CC22FD510000368A0D /* SceneDelegate.swift in Sources */,
+				9C7E190B2313E02D00518E33 /* CustomBatchesViewController.swift in Sources */,
+				9CA01D1C2312F4CF00666EDE /* SampleData.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
