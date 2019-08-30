@@ -174,7 +174,11 @@ CombineOpenSource is available under the MIT license. See the LICENSE file for m
 
 ## Combine Open Source
 
-![Combine Slack channel](Assets/slack.png) Join at:  [https://combineopensource.slack.com](https://combineopensource.slack.com) for Combine related talk.
+![Combine Slack channel](Assets/slack.png) 
+
+CombineOpenSource Slack channel: [https://combineopensource.slack.com](https://combineopensource.slack.com). 
+
+[Sign up here](https://join.slack.com/t/combineopensource/shared_invite/enQtNzQ1MzYyMTMxOTkxLWJkZmNkZDU4MTE4NmU2MjBhYzM5NzI1NTRlNWNhODFiMDEyMjVjOWZmZWI2NmViMzU3ZjZhYjc0YTExOGZmMDM)
 
 ## Credits
 
