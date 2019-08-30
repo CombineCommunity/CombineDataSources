@@ -182,6 +182,8 @@ CombineOpenSource Slack channel: [https://combineopensource.slack.com](https://c
 
 ## Credits
 
-Created by Marin Todorov for [CombineOpenSource](https://github.com/combineopensource).
+Created by Marin Todorov for [CombineOpenSource](https://github.com/combineopensource). 
+
+📚 You can support me by checking out our Combine book: [combinebook.com](http://combinebook.com).
 
 Inspired by [RxDataSources](https://github.com/RxSwiftCommunity/RxDataSources) and [RxRealmDataSources](https://github.com/RxSwiftCommunity/RxRealmDataSources).
