@@ -40,6 +40,12 @@ public class TableViewItemsController<CollectionType>: NSObject, UITableViewData
   public var dataSource: UITableViewDataSource?
   
   // MARK: - Init
+  
+  /// An initializer that takes a cell type and identifier and configures the controller to dequeue cells
+  /// with that data and configures each cell by calling the developer provided `cellConfig()`.
+  /// - Parameter cellIdentifier: A cell identifier to use to dequeue cells from the source table view
+  /// - Parameter cellType: A type to cast dequeued cells as
+  /// - Parameter cellConfig: A closure to call before displaying each cell
   public init<CellType>(cellIdentifier: String, cellType: CellType.Type, cellConfig: @escaping CellConfig<Element, CellType>) where CellType: UITableViewCell {
     cellFactory = { dataSource, tableView, indexPath, value in
       let cell = tableView.dequeueReusableCell(withIdentifier: cellIdentifier, for: indexPath) as! CellType
@@ -48,7 +54,10 @@ public class TableViewItemsController<CollectionType>: NSObject, UITableViewData
     }
   }
   
-  private init(cellFactory: @escaping CellFactory<Element>) {
+  
+  /// An initializer that takes a closure expected to return a dequeued cell ready to be displayed in the table view.
+  /// - Parameter cellFactory: A `(TableViewItemsController<CollectionType>, UITableView, IndexPath, Element) -> UITableViewCell` closure. Use the table input parameter to dequeue a cell and configure it with the `Element`'s data
+  public init(cellFactory: @escaping CellFactory<Element>) {
     self.cellFactory = cellFactory
   }
   

@@ -33,6 +33,12 @@ public class CollectionViewItemsController<CollectionType>: NSObject, UICollecti
   public var dataSource: UICollectionViewDataSource?
   
   // MARK: - Init
+  
+  /// An initializer that takes a cell type and identifier and configures the controller to dequeue cells
+  /// with that data and configures each cell by calling the developer provided `cellConfig()`.
+  /// - Parameter cellIdentifier: A cell identifier to use to dequeue cells from the source collection view
+  /// - Parameter cellType: A type to cast dequeued cells as
+  /// - Parameter cellConfig: A closure to call before displaying each cell
   public init<CellType>(cellIdentifier: String, cellType: CellType.Type, cellConfig: @escaping CellConfig<Element, CellType>) where CellType: UICollectionViewCell {
     cellFactory = { dataSource, collectionView, indexPath, value in
       let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellIdentifier, for: indexPath) as! CellType
@@ -40,8 +46,10 @@ public class CollectionViewItemsController<CollectionType>: NSObject, UICollecti
       return cell
     }
   }
-  
-  private init(cellFactory: @escaping CellFactory<Element>) {
+
+  /// An initializer that takes a closure expected to return a dequeued cell ready to be displayed in the collection view.
+  /// - Parameter cellFactory: A `(CollectionViewItemsController<CollectionType>, UICollectionView, IndexPath, Element) -> UICollectionViewCell` closure. Use the table input parameter to dequeue a cell and configure it with the `Element`'s data
+  public init(cellFactory: @escaping CellFactory<Element>) {
     self.cellFactory = cellFactory
   }
   
