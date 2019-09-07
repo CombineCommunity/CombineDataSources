@@ -86,7 +86,7 @@ controller.animated = false
 // More custom controller configuration ...
 
 data
-  .subscribe(bind: tableView.sectionsSubscriber(controller))
+  .bind(subscriber: tableView.sectionsSubscriber(controller))
   .store(in: &subscriptions)
 ```
 
