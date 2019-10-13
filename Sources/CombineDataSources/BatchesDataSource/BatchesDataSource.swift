@@ -100,7 +100,7 @@ public struct BatchesDataSource<Element> {
     case data(Data?)
   }
   
-  private init(items: [Element] = [], input: BatchesInput, initial: Token, loadNextCallback: @escaping (Token) -> AnyPublisher<LoadResult, Error>) {
+  private init(items: [Element] = [], input: BatchesInput, initial: Token, loadNextCallback: @escaping (Token) -> AnyPublisher<LoadResult, Error>, merge: MergeStrategy) {
     let itemsSubject = CurrentValueSubject<[Element], Never>(items)
     let token = CurrentValueSubject<Token, Never>(initial)
 
@@ -183,8 +183,7 @@ public struct BatchesDataSource<Element> {
     result
       .map {
         // TODO: Solve for `withLatestFrom(_)`
-        let currentItems = itemsSubject.value
-        return currentItems + $0.items
+        return merge.reduce(current: itemsSubject.value, new: $0.items)
       }
       .subscribe(itemsSubject)
       .store(in: &subscriptions)
@@ -213,34 +212,58 @@ public struct BatchesDataSource<Element> {
   /// Initializes a list data source using a token to fetch batches of items.
   /// - Parameter items: initial list of items.
   /// - Parameter input: the input to control the data source.
+  /// - Parameter merge: a merge strategy to reduce the current list and new elements into an updated list
   /// - Parameter initialToken: the token to use to fetch the first batch.
   /// - Parameter loadItemsWithToken: a `(Data?) -> (Publisher<LoadResult, Error>)` closure that fetches a batch of items and returns the items fetched
   ///   plus a token to use for the next batch. The token can be an alphanumerical id, a URL, or another type of token.
   /// - Todo: if `withLatestFrom` is introduced, use it instead of grabbing the latest value unsafely.
-  public init(items: [Element] = [], input: BatchesInput, initialToken: Data?, loadItemsWithToken: @escaping (Data?) -> AnyPublisher<LoadResult, Error>) {
+  public init(items: [Element] = [], input: BatchesInput, merge: MergeStrategy = .default, initialToken: Data?, loadItemsWithToken: @escaping (Data?) -> AnyPublisher<LoadResult, Error>) {
     self.init(items: items, input: input, initial: Token.data(initialToken), loadNextCallback: { token -> AnyPublisher<LoadResult, Error> in
       switch token {
       case .data(let data):
         return loadItemsWithToken(data)
       default: fatalError()
       }
-    })
+    }, merge: merge)
   }
 
   /// Initialiazes a list data source of items batched in numbered pages.
   /// - Parameter items: initial list of items.
   /// - Parameter input: the input to control the data source.
+  /// - Parameter merge: a merge strategy to reduce the current list and new elements into an updated list
   /// - Parameter initialPage: the page number to use for the first load of items.
   /// - Parameter loadPage: a `(Int) -> (Publisher<LoadResult, Error>)` closure that fetches a batch of items.
   /// - Todo: if `withLatestFrom` is introduced, use it instead of grabbing the latest value unsafely.
-  public init(items: [Element] = [], input: BatchesInput, initialPage: Int = 0, loadPage: @escaping (Int) -> AnyPublisher<LoadResult, Error>) {
+  public init(items: [Element] = [], input: BatchesInput, merge: MergeStrategy = .default, initialPage: Int = 0, loadPage: @escaping (Int) -> AnyPublisher<LoadResult, Error>) {
     self.init(items: items, input: input, initial: Token.int(initialPage), loadNextCallback: { page -> AnyPublisher<LoadResult, Error> in
       switch page {
       case .int(let page):
         return loadPage(page)
       default: fatalError()
       }
-    })
+    }, merge: merge)
+  }
+}
+
+extension BatchesDataSource {
+  public enum MergeStrategy {
+    /// Append new elements at the end of the current list
+    case `default`, append
+    
+    /// Prepend new elements at the beginning of the current list
+    case prepend
+    
+    /// A custom merge strategy providing a `([Element], [Element])->[Element]` closure
+    /// that receives the current list and the new elements and returns an updated list.
+    case reduce(([Element], [Element])->[Element])
+
+    func reduce(current: [Element], new: [Element]) -> [Element] {
+      switch self {
+      case .default, .append: return current + new
+      case .prepend: return new + current
+      case .reduce(let block): return block(current, new)
+      }
+    }
   }
 }
 

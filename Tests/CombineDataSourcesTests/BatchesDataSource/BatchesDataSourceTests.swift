@@ -283,4 +283,74 @@ final class BatchesDataSourceTests: XCTestCase {
 
     wait(for: [controlEvent], timeout: 1)
   }
+  
+  func _mergeStrategy(initial: [String], output: String, strategy: BatchesDataSource<String>.MergeStrategy) -> [[String]] {
+    let testStrings = ["test1", "test2"]
+    var subscriptions = [AnyCancellable]()
+    
+    let inputControls = self.inputControls
+    
+    let batcher = BatchesDataSource<String>(items: testStrings, input: inputControls.input, merge: strategy) { page in
+      return Future<BatchesDataSource<String>.LoadResult, Error> { promise in
+        DispatchQueue.main.async {
+          promise(.success(.items(["test3"])))
+        }
+      }.eraseToAnyPublisher()
+    }
+    
+    let controlEvent = expectation(description: "Wait for control event")
+    var result = [[String]]()
+    
+    batcher.output.$items
+      .prefix(2)
+      .collect()
+      .sink(receiveCompletion: { _ in
+        controlEvent.fulfill()
+      }) { values in
+        result = values
+      }
+      .store(in: &subscriptions)
+
+    DispatchQueue.global().async {
+      inputControls.loadNext.send()
+    }
+
+    wait(for: [controlEvent], timeout: 1)
+    
+    return result
+  }
+  
+  func testMergeStrategyDefault() {
+    let result = _mergeStrategy(initial: ["test1", "test2"], output: "test3", strategy: .default)
+    XCTAssertEqual(result, [
+      ["test1", "test2"],
+      ["test1", "test2", "test3"]
+    ])
+  }
+
+  func testMergeStrategyAppend() {
+    let result = _mergeStrategy(initial: ["test1", "test2"], output: "test3", strategy: .append)
+    XCTAssertEqual(result, [
+      ["test1", "test2"],
+      ["test1", "test2", "test3"]
+    ])
+  }
+
+  func testMergeStrategyPrepend() {
+    let result = _mergeStrategy(initial: ["test1", "test2"], output: "test3", strategy: .prepend)
+    XCTAssertEqual(result, [
+      ["test1", "test2"],
+      ["test3", "test1", "test2"]
+    ])
+  }
+
+  func testMergeStrategyCustom() {
+    let result = _mergeStrategy(initial: ["test1", "test2"], output: "test3", strategy: .reduce({ (current, new) -> [String] in
+      return new
+    }))
+    XCTAssertEqual(result, [
+      ["test1", "test2"],
+      ["test3"]
+    ])
+  }
 }
