@@ -18,7 +18,7 @@ public class CollectionViewItemsController<CollectionType>: NSObject, UICollecti
   
   public typealias Element = CollectionType.Element.Element
   public typealias CellFactory<Element: Equatable> = (CollectionViewItemsController<CollectionType>, UICollectionView, IndexPath, Element) -> UICollectionViewCell
-    public typealias SupplementaryViewFactory = (CollectionViewItemsController<CollectionType>, UICollectionView, String, IndexPath, CollectionType.Element) -> UICollectionReusableView
+  public typealias SupplementaryViewFactory = (CollectionViewItemsController<CollectionType>, UICollectionView, String, IndexPath, CollectionType.Element) -> UICollectionReusableView
   public typealias CellConfig<Element, Cell> = (Cell, IndexPath, Element) -> Void
   
   private let cellFactory: CellFactory<Element>
@@ -101,9 +101,9 @@ public class CollectionViewItemsController<CollectionType>: NSObject, UICollecti
     cellFactory(self, collectionView, indexPath, collection[indexPath.section][indexPath.row])
   }
 
-    public func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
-        return configureSupplementaryView!(self, collectionView, kind, indexPath, collection[indexPath.section])
-    }
+  public func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+      return configureSupplementaryView!(self, collectionView, kind, indexPath, collection[indexPath.section])
+  }
   
   // MARK: - Fallback data source object
   override public func forwardingTarget(for aSelector: Selector!) -> Any? {
