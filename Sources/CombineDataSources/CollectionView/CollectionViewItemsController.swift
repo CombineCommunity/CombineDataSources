@@ -18,6 +18,7 @@ public class CollectionViewItemsController<CollectionType>: NSObject, UICollecti
   
   public typealias Element = CollectionType.Element.Element
   public typealias CellFactory<Element: Equatable> = (CollectionViewItemsController<CollectionType>, UICollectionView, IndexPath, Element) -> UICollectionViewCell
+    public typealias SupplementaryViewFactory = (CollectionViewItemsController<CollectionType>, UICollectionView, String, CollectionType.Element) -> UICollectionReusableView
   public typealias CellConfig<Element, Cell> = (Cell, IndexPath, Element) -> Void
   
   private let cellFactory: CellFactory<Element>
@@ -31,6 +32,8 @@ public class CollectionViewItemsController<CollectionType>: NSObject, UICollecti
   
   /// A fallback data source to implement custom logic like indexes, dragging, etc.
   public var dataSource: UICollectionViewDataSource?
+
+  open var configureSupplementaryView: SupplementaryViewFactory?
   
   // MARK: - Init
   
@@ -97,6 +100,10 @@ public class CollectionViewItemsController<CollectionType>: NSObject, UICollecti
   public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
     cellFactory(self, collectionView, indexPath, collection[indexPath.section][indexPath.row])
   }
+
+    public func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+        return configureSupplementaryView!(self, collectionView, kind, collection[indexPath.section])
+    }
   
   // MARK: - Fallback data source object
   override public func forwardingTarget(for aSelector: Selector!) -> Any? {
