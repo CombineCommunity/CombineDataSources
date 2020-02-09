@@ -102,7 +102,10 @@ public class CollectionViewItemsController<CollectionType>: NSObject, UICollecti
   }
 
   public func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
-      return configureSupplementaryView!(self, collectionView, kind, indexPath, collection[indexPath.section])
+      guard let configureSupplementaryView = configureSupplementaryView else {
+        fatalError("Property `configureSupplementaryView` must not be nil when using supplementary views")
+      }
+      return configureSupplementaryView(self, collectionView, kind, indexPath, collection[indexPath.section])
   }
   
   // MARK: - Fallback data source object
