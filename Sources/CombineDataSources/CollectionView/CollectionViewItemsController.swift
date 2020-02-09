@@ -33,7 +33,7 @@ public class CollectionViewItemsController<CollectionType>: NSObject, UICollecti
   /// A fallback data source to implement custom logic like indexes, dragging, etc.
   public var dataSource: UICollectionViewDataSource?
 
-  open var configureSupplementaryView: SupplementaryViewFactory?
+  public var configureSupplementaryView: SupplementaryViewFactory?
   
   // MARK: - Init
   
