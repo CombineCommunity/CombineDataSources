@@ -20,6 +20,8 @@
 
 2.1 [Swift Package Manager](#swift-package-manager)
 
+2.2 [Cocoapods](#cocoapods)
+
 3. [**License**](#license)
 
 4. [**Credits**](#credits)
@@ -156,7 +158,7 @@ let tableController = TableViewBatchesController<String>(
 - [ ] cover every API with tests
 - [ ] make the default batches view controller neater
 - [ ] add AppKit version of the data sources
-- [ ] support Cocoapods
+- [x] support Cocoapods
 
 ## Installation
 
@@ -166,6 +168,13 @@ Add the following dependency to your **Package.swift** file:
 
 ```swift
 .package(url: "https://github.com/combineopensource/CombineDataSources, from: "0.2")
+```
+
+### Cocoapods
+Add the following dependency to your **Podfile**:
+
+```swift
+pod 'CombineDataSources'
 ```
 
 ## License
