@@ -42,13 +42,20 @@ final class CollectionViewItemsControllerTests: XCTestCase {
         // Configure the controller
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
         collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "Cell")
-        
+        collectionView.register(UICollectionReusableView.self, forSupplementaryViewOfKind: "supplementary-kind", withReuseIdentifier: "supplementaryview")
+
+        ctr.configureSupplementaryView = { _, collection, kind, index, section -> UICollectionReusableView in
+            return collection.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "supplementaryview", for: index)
+        }
+    
         ctr.collectionView = collectionView
         ctr.updateCollection(dataSet2)
         
         XCTAssertNil(lastModel)
         let cell = ctr.collectionView(collectionView, cellForItemAt: IndexPath(row: 0, section: 0))
+        let supplementaryView = ctr.collectionView(collectionView, viewForSupplementaryElementOfKind: "supplementary-kind", at: IndexPath(row: 0, section: 0))
         XCTAssertNotNil(cell)
+        XCTAssertNotNil(supplementaryView)
         XCTAssertEqual("test model", lastModel?.text)
     }
 }
