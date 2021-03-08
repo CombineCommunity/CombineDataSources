@@ -283,4 +283,41 @@ final class BatchesDataSourceTests: XCTestCase {
         
         wait(for: [controlEvent], timeout: 1)
     }
+    
+    func testReloadManually() {
+        let testStrings = ["test1", "test2"]
+        var subscriptions = [AnyCancellable]()
+        let inputControls = self.inputControls
+        
+        let batcher = BatchesDataSource<String>(items: testStrings, input: inputControls.input, isFirstReload: false) { page in
+            return Future<BatchesDataSource<String>.LoadResult, Error> { promise in
+                DispatchQueue.main.async {
+                    promise(.success(.items(["test3"])))
+                }
+            }.eraseToAnyPublisher()
+        }
+        
+        let controlEvent = expectation(description: "Wait for control event")
+        
+        batcher.output.$items
+            .dropFirst(1)
+            .prefix(2)
+            .collect()
+            .sink(receiveCompletion: { _ in
+                controlEvent.fulfill()
+            }) { values in
+                XCTAssertEqual([
+                    testStrings,
+                    testStrings + ["test3"]
+                ], values)
+        }
+        .store(in: &subscriptions)
+        
+        DispatchQueue.global().async {
+            inputControls.reload.send()
+            inputControls.loadNext.send()
+        }
+        
+        wait(for: [controlEvent], timeout: 1)
+    }
 }
