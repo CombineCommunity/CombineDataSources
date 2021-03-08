@@ -110,10 +110,13 @@ let dataSource = BatchesDataSource<String>(
   items: ["Initial Element"],
   input: input,
   initialToken: nil,
+  isFirstLoad: true,
   loadItemsWithToken: { token in
     return MockAPI.requestBatchCustomToken(token)
   })
 ```
+
+> By default, the data source will trigger an input's reload automatically to load the first batch of items. If you want to trigger manually, set the BatchesDataSource's isFirstLoad property to **false**
 
 `dataSource` is controlled via the two inputs:
 
