@@ -110,13 +110,14 @@ let dataSource = BatchesDataSource<String>(
   items: ["Initial Element"],
   input: input,
   initialToken: nil,
-  isFirstLoad: true,
+  isFirstReload: true,
   loadItemsWithToken: { token in
     return MockAPI.requestBatchCustomToken(token)
   })
 ```
 
-> By default, the data source will trigger an input's reload automatically to load the first batch of items. If you want to trigger manually, set the BatchesDataSource's isFirstLoad property to **false**
+> By default, the data source will trigger an input's reload automatically to load the first batch of items. If you want to trigger manually, set the BatchesDataSource's isFirstReload property to **false**
+> 
 > The **dataSource** variable must be retained to keep all of its output's subscriptions be alive, initialize it inside a local scope (such as viewDidLoad method) cause all of its output's subscriptions are cancelled
 
 `dataSource` is controlled via the two inputs:
