@@ -100,7 +100,7 @@ public struct BatchesDataSource<Element> {
         case data(Data?)
     }
     
-    private init(items: [Element] = [], input: BatchesInput, initial: Token, loadNextCallback: @escaping (Token) -> AnyPublisher<LoadResult, Error>) {
+    private init(items: [Element] = [], input: BatchesInput, initial: Token, isFirstReload: Bool = true, loadNextCallback: @escaping (Token) -> AnyPublisher<LoadResult, Error>) {
         let itemsSubject = CurrentValueSubject<[Element], Never>(items)
         let token = CurrentValueSubject<Token, Never>(initial)
         
@@ -115,10 +115,17 @@ public struct BatchesDataSource<Element> {
         
         let loadNext = input.loadNext
             .map { token.value }
-        
-        let batchRequest = loadNext
+     
+        var batchRequest: AnyPublisher<Token, Never>!
+        if isFirstReload {
+         batchRequest = loadNext
             .merge(with: input.reload.prepend(()).map { initial })
             .eraseToAnyPublisher()
+        } else {
+         batchRequest = loadNext
+            .merge(with: input.reload.map { initial })
+            .eraseToAnyPublisher()
+        }
         
         // TODO: avoid having extra subject when `shareReplay()` is introduced.
         let batchResponse = PassthroughSubject<ResponseResult, Never>()
@@ -217,8 +224,8 @@ public struct BatchesDataSource<Element> {
     /// - Parameter loadItemsWithToken: a `(Data?) -> (Publisher<LoadResult, Error>)` closure that fetches a batch of items and returns the items fetched
     ///   plus a token to use for the next batch. The token can be an alphanumerical id, a URL, or another type of token.
     /// - Todo: if `withLatestFrom` is introduced, use it instead of grabbing the latest value unsafely.
-    public init(items: [Element] = [], input: BatchesInput, initialToken: Data?, loadItemsWithToken: @escaping (Data?) -> AnyPublisher<LoadResult, Error>) {
-        self.init(items: items, input: input, initial: Token.data(initialToken), loadNextCallback: { token -> AnyPublisher<LoadResult, Error> in
+    public init(items: [Element] = [], input: BatchesInput, initialToken: Data?, isFirstReload: Bool = true, loadItemsWithToken: @escaping (Data?) -> AnyPublisher<LoadResult, Error>) {
+        self.init(items: items, input: input, initial: Token.data(initialToken), isFirstReload: isFirstReload, loadNextCallback: { token -> AnyPublisher<LoadResult, Error> in
             switch token {
             case .data(let data):
                 return loadItemsWithToken(data)
@@ -233,8 +240,8 @@ public struct BatchesDataSource<Element> {
     /// - Parameter initialPage: the page number to use for the first load of items.
     /// - Parameter loadPage: a `(Int) -> (Publisher<LoadResult, Error>)` closure that fetches a batch of items.
     /// - Todo: if `withLatestFrom` is introduced, use it instead of grabbing the latest value unsafely.
-    public init(items: [Element] = [], input: BatchesInput, initialPage: Int = 0, loadPage: @escaping (Int) -> AnyPublisher<LoadResult, Error>) {
-        self.init(items: items, input: input, initial: Token.int(initialPage), loadNextCallback: { page -> AnyPublisher<LoadResult, Error> in
+    public init(items: [Element] = [], input: BatchesInput, initialPage: Int = 0, isFirstReload: Bool = true, loadPage: @escaping (Int) -> AnyPublisher<LoadResult, Error>) {
+        self.init(items: items, input: input, initial: Token.int(initialPage), isFirstReload: isFirstReload, loadNextCallback: { page -> AnyPublisher<LoadResult, Error> in
             switch page {
             case .int(let page):
                 return loadPage(page)
