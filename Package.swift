@@ -5,6 +5,7 @@ let package = Package(
     name: "CombineDataSources",
     platforms: [
       .iOS(.v13),
+      .tvOS(.v13),
     ],
     products: [
         .library(
