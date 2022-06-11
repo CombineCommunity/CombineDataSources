@@ -34,7 +34,7 @@ CollectionType.Element.Element: Hashable {
     )
     
     /// The table view for the data source
-    var tableView: UITableView!
+    weak var tableView: UITableView!
     
     /// A fallback data source to implement custom logic like indexes, dragging, etc.
     public var dataSource: UITableViewDataSource?
