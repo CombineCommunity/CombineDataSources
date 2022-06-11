@@ -28,7 +28,7 @@ public class CollectionViewItemsController<CollectionType>: NSObject, UICollecti
   public var animated = true
   
   /// The collection view for the data source
-  var collectionView: UICollectionView!
+  weak var collectionView: UICollectionView!
   
   /// A fallback data source to implement custom logic like indexes, dragging, etc.
   public var dataSource: UICollectionViewDataSource?
