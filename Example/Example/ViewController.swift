@@ -57,11 +57,13 @@ class ViewController: UIViewController {
     switch demo {
     case .plain:
       // A plain list with a single section -> Publisher<[Person], Never>
-      first.publisher
+      let plainSubject = PassthroughSubject<[Person], Never>()
+      plainSubject.eraseToAnyPublisher()
         .bind(subscriber: tableView.rowsSubscriber(cellIdentifier: "Cell", cellType: PersonCell.self, cellConfig: { cell, indexPath, model in
           cell.nameLabel.text = "\(indexPath.section+1).\(indexPath.row+1) \(model.name)"
         }))
         .store(in: &subscriptions)
+      plainSubject.send(first.first!)
       
     case .multiple:
       // Table with sections -> Publisher<[[Person]], Never>
