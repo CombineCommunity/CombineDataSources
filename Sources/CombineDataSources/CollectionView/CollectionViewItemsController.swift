@@ -84,7 +84,9 @@ public class CollectionViewItemsController<CollectionType>: NSObject, UICollecti
         }
       }
       collection = items
-    }, completion: nil)
+    }, completion: { [weak self] _ in
+      self?.collectionView.reloadData()
+    })
   }
   
   // MARK: - UITableViewDataSource protocol
